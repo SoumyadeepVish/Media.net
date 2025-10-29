@@ -1,0 +1,165 @@
+import React, { useState } from "react";
+
+// Simple single-file prototype (React). Default export a component.
+// Features:
+// - Mock GBP connect (user inputs business name)
+// - Select goal and budget slider
+// - "AI" generates 3 ad variations from mock reviews
+// - One-click launch simulates campaign and generates a lead
+// - Dashboard shows leads and calculated CPL
+
+const mockReviews = [
+  "Fast and reliable service - fixed my leak within an hour",
+  "Friendly and professional team, highly recommended",
+  "Affordable pricing and great workmanship",
+  "Came on time and solved the problem quickly",
+  "Best in town for emergency repairs",
+];
+
+function generateAdFromReviews(name, reviews) {
+  // Lightweight mock of review-to-ad generation
+  const themes = reviews
+    .slice(0, 5)
+    .map((r) => r.replace(/[^a-zA-Z0-9 ]/g, ""))
+    .map((r) => {
+      if (r.toLowerCase().includes("fast")) return "Fast & reliable service";
+      if (r.toLowerCase().includes("friendly")) return "Friendly, professional team";
+      if (r.toLowerCase().includes("affordable")) return "Affordable pricing";
+      if (r.toLowerCase().includes("emergency")) return "24/7 emergency repairs";
+      return "Trusted local service";
+    });
+
+  const variants = [
+    {
+      headline: `${name} - ${themes[0] || "Trusted local service"}`,
+      desc: `${themes[0] || "Trusted local service"}. Call now for a free estimate.",
+    },
+    {
+      headline: `${themes[1] || "Reliable Service"} at ${name}`,
+      desc: `Trusted by your neighbors. Book a service today.",
+    },
+    {
+      headline: `Need help now? ${themes[2] || "Call ${name}"}`,
+      desc: `Quick response, fair price. Click to call now.",
+    },
+  ];
+
+  return variants;
+}
+
+export default function App() {
+  const [connected, setConnected] = useState(false);
+  const [businessName, setBusinessName] = useState("");
+  const [goal, setGoal] = useState("Get More Phone Calls");
+  const [budget, setBudget] = useState(50);
+  const [ads, setAds] = useState([]);
+  const [approvedAd, setApprovedAd] = useState(null);
+  const [launched, setLaunched] = useState(false);
+  const [leads, setLeads] = useState(0);
+  const [spend, setSpend] = useState(0);
+
+  const connectGBP = () => {
+    // Simulate ingestion
+    setConnected(true);
+  };
+
+  const handleGenerate = () => {
+    const generated = generateAdFromReviews(businessName || "Your Business", mockReviews);
+    setAds(generated);
+    setApprovedAd(null);
+  };
+
+  const handleLaunch = () => {
+    if (!approvedAd) return alert("Please approve an ad variation before launching.");
+    setLaunched(true);
+    setSpend((s) => s + budget);
+
+    // Simulate lead arrival after a short timeout
+    setTimeout(() => {
+      setLeads((l) => l + 1);
+      alert("🎉 You just received a new lead from your ad!");
+    }, 2000);
+  };
+
+  const costPerLead = leads ? (spend / leads).toFixed(2) : "-";
+
+  return (
+    <div style={{ fontFamily: "Inter, Arial, sans-serif", padding: 24, maxWidth: 900, margin: "0 auto" }}>
+      <h1 style={{ fontSize: 24, marginBottom: 8 }}>Local Growth Engine — Prototype</h1>
+      <p style={{ marginTop: 0, color: "#555" }}>MVP demo: connect GBP (mock), generate AI ads, launch local campaign, receive first lead.</p>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 20, marginTop: 20 }}>
+        <div>
+          <section style={{ padding: 16, border: "1px solid #eee", borderRadius: 8, marginBottom: 16 }}>
+            <h2 style={{ marginTop: 0, fontSize: 18 }}>1) Connect Google Business Profile (mock)</h2>
+            <input
+              placeholder="Business name (e.g., Joe's Plumbing)"
+              value={businessName}
+              onChange={(e) => setBusinessName(e.target.value)}
+              style={{ width: "100%", padding: 8, marginBottom: 8 }}
+            />
+            <button onClick={() => { connectGBP(); handleGenerate(); }} style={{ padding: "8px 12px" }}>
+              Connect GBP & Generate Ads
+            </button>
+            {connected && <div style={{ marginTop: 12, color: "green" }}>GBP connected — assets imported.</div>}
+          </section>
+
+          <section style={{ padding: 16, border: "1px solid #eee", borderRadius: 8, marginBottom: 16 }}>
+            <h2 style={{ marginTop: 0, fontSize: 18 }}>2) Define Goal & Budget</h2>
+            <select value={goal} onChange={(e) => setGoal(e.target.value)} style={{ padding: 8, width: "100%", marginBottom: 8 }}>
+              <option>Get More Phone Calls</option>
+              <option>Get Website Visits</option>
+              <option>Get Directions</option>
+            </select>
+            <label>Weekly budget: ₹{budget}</label>
+            <input type="range" min="10" max="500" value={budget} onChange={(e) => setBudget(Number(e.target.value))} style={{ width: "100%" }} />
+            <div style={{ marginTop: 8, color: "#333" }}>
+              Estimate: ~{Math.max(1, Math.round(budget / 10))} leads/week for similar local businesses in this area.
+            </div>
+          </section>
+
+          <section style={{ padding: 16, border: "1px solid #eee", borderRadius: 8 }}>
+            <h2 style={{ marginTop: 0, fontSize: 18 }}>3) Approve Creative</h2>
+            <div style={{ display: "flex", gap: 12, overflowX: "auto" }}>
+              {ads.length === 0 && <div style={{ color: "#666" }}>Click "Connect GBP & Generate Ads" to create ad variations.</div>}
+              {ads.map((a, idx) => (
+                <div key={idx} style={{ minWidth: 240, padding: 12, border: approvedAd === idx ? "2px solid #0b74de" : "1px solid #ddd", borderRadius: 6 }}>
+                  <div style={{ fontWeight: 700 }}>{a.headline}</div>
+                  <div style={{ marginTop: 6, color: "#444" }}>{a.desc}</div>
+                  <button style={{ marginTop: 10 }} onClick={() => setApprovedAd(idx)}>Approve</button>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <div style={{ marginTop: 12 }}>
+            <button onClick={handleLaunch} style={{ padding: "10px 16px", fontWeight: 700 }} disabled={!approvedAd}>
+              {launched ? "Campaign Launched" : "Launch Campaign"}
+            </button>
+            {launched && <div style={{ marginTop: 8, color: "#555" }}>Campaign running (simulated). We'll notify you when a lead arrives.</div>}
+          </div>
+        </div>
+
+        <aside style={{ padding: 16, border: "1px solid #eee", borderRadius: 8, height: "fit-content" }}>
+          <h3 style={{ marginTop: 0 }}>Dashboard</h3>
+          <div style={{ marginBottom: 8 }}>Leads: <strong>{leads}</strong></div>
+          <div style={{ marginBottom: 8 }}>Total Spend: <strong>₹{spend}</strong></div>
+          <div style={{ marginBottom: 8 }}>Cost Per Lead: <strong>{costPerLead === "-" ? "-" : `₹${costPerLead}`}</strong></div>
+
+          <div style={{ marginTop: 12 }}>
+            <h4 style={{ marginBottom: 8 }}>Quick Tips</h4>
+            <ul style={{ paddingLeft: 18 }}>
+              <li>Keep budget conservative for first campaign.</li>
+              <li>Choose the ad that sounds most like your customers.</li>
+              <li>Look for the "Aha!" lead notification to decide next steps.</li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+
+      <footer style={{ marginTop: 28, color: "#666", fontSize: 13 }}>
+        Prototype note: This is a front-end simulation for demo purposes. In production, connect real GBP and Google Ads APIs and secure server-side deployment.
+      </footer>
+    </div>
+  );
+}
