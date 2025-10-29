@@ -1,0 +1,171 @@
+├── smb-ai-prototype/
+│   ├── package.json
+│   ├── README.md
+│   ├── public/
+│   │   ├── index.html
+│   └── src/
+│       ├── index.js
+│       ├── App.jsx
+│       ├── components/
+│       │   ├── Dashboard.jsx
+│       │   ├── AdGenerator.jsx
+│       │   ├── LeadSimulator.jsx
+│       │   └── ConnectGBP.jsx
+
+---
+
+// package.json
+{
+  "name": "smb-ai-prototype",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1",
+    "tailwindcss": "^3.3.2",
+    "lucide-react": "^0.330.0",
+    "framer-motion": "^10.16.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  }
+}
+
+---
+
+// public/index.html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SMB AI Growth Prototype</title>
+  </head>
+  <body class="bg-gray-50">
+    <div id="root"></div>
+  </body>
+</html>
+
+---
+
+// src/index.js
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css';
+import App from './App.jsx';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+
+---
+
+// src/App.jsx
+import React, { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import ConnectGBP from './components/ConnectGBP';
+import AdGenerator from './components/AdGenerator';
+import LeadSimulator from './components/LeadSimulator';
+import Dashboard from './components/Dashboard';
+
+export default function App() {
+  const [connected, setConnected] = useState(false);
+  const [ads, setAds] = useState([]);
+  const [leads, setLeads] = useState([]);
+
+  return (
+    <div className="min-h-screen p-6 space-y-6 bg-gray-50">
+      <h1 className="text-3xl font-bold text-center">SMB AI Growth Prototype</h1>
+      {!connected && <ConnectGBP onConnect={() => setConnected(true)} />}
+      {connected && (
+        <>
+          <AdGenerator onGenerate={(newAds) => setAds(newAds)} />
+          <LeadSimulator ads={ads} onLead={(lead) => setLeads([...leads, lead])} />
+          <Dashboard leads={leads} />
+        </>
+      )}
+    </div>
+  );
+}
+
+---
+
+// src/components/ConnectGBP.jsx
+import React from 'react';
+import { Button } from '@/components/ui/button';
+
+export default function ConnectGBP({ onConnect }) {
+  return (
+    <div className="flex flex-col items-center justify-center space-y-4">
+      <p className="text-lg text-gray-700">Connect your Google Business Profile to begin</p>
+      <Button onClick={onConnect}>Connect GBP</Button>
+    </div>
+  );
+}
+
+---
+
+// src/components/AdGenerator.jsx
+import React from 'react';
+import { Button } from '@/components/ui/button';
+
+export default function AdGenerator({ onGenerate }) {
+  const sampleAds = [
+    'Get 20% off this Diwali! Visit us now!',
+    'Rated 4.8⭐ by 1200+ happy customers! Check out our bestsellers!',
+    'Fast delivery, trusted service — order today!'
+  ];
+
+  return (
+    <div className="bg-white p-4 rounded-2xl shadow">
+      <h2 className="text-xl font-semibold mb-2">AI Ad Generator</h2>
+      <Button onClick={() => onGenerate(sampleAds)}>Generate Sample Ads</Button>
+    </div>
+  );
+}
+
+---
+
+// src/components/LeadSimulator.jsx
+import React from 'react';
+import { Button } from '@/components/ui/button';
+
+export default function LeadSimulator({ ads, onLead }) {
+  const simulateLead = () => {
+    if (!ads.length) return alert('Generate ads first!');
+    const newLead = {
+      name: 'Lead #' + (Math.floor(Math.random() * 1000)),
+      cost: Math.floor(Math.random() * 100) + 50
+    };
+    onLead(newLead);
+  };
+
+  return (
+    <div className="bg-white p-4 rounded-2xl shadow">
+      <h2 className="text-xl font-semibold mb-2">Lead Simulator</h2>
+      <Button onClick={simulateLead}>Simulate Lead</Button>
+    </div>
+  );
+}
+
+---
+
+// src/components/Dashboard.jsx
+import React from 'react';
+
+export default function Dashboard({ leads }) {
+  const totalCost = leads.reduce((sum, l) => sum + l.cost, 0);
+  const costPerLead = leads.length ? (totalCost / leads.length).toFixed(2) : 0;
+
+  return (
+    <div className="bg-white p-4 rounded-2xl shadow">
+      <h2 className="text-xl font-semibold mb-2">Dashboard</h2>
+      <p>Total Leads: {leads.length}</p>
+      <p>Average Cost per Lead: ₹{costPerLead}</p>
+    </div>
+  );
+}
